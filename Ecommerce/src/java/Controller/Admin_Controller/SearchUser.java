@@ -2,12 +2,9 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
  */
-package Controller.Customer_Controller;
+package Controller.Admin_Controller;
 
-import Model.Chinh.Categories;
-import Model.Chinh.MinMaxPrice;
-import Model.Chinh.Products;
-import Model.Chinh.images;
+import DAO.DAO_Admin.DAOAdmin;
 import Model.Users;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -21,10 +18,10 @@ import java.util.List;
 
 /**
  *
- * @author Dell
+ * @author lenovo
  */
-@WebServlet(name = "HomePage", urlPatterns = {"/homePage"})
-public class HomePage extends HttpServlet {
+@WebServlet(name = "SearchUser", urlPatterns = {"/SearchUser"})
+public class SearchUser extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -39,16 +36,24 @@ public class HomePage extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         try (PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet HomePage</title>");
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet HomePage at " + request.getContextPath() + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
+           String email = request.getParameter("email");
+            HttpSession session = request.getSession();
+            Users acc = (Users) session.getAttribute("acc");
+            
+            if(acc.getUserRole().equals("Admin") && acc != null){
+            // Lấy danh sách user từ DAO
+            DAO.DAO_Admin.DAOAdmin dao = new DAOAdmin();
+            List<Users> user = dao.GetUserListByEmail(email);
+          
+            request.setAttribute("UserList", user);
+
+            // Forward đến trang JSP
+            
+            request.getRequestDispatcher("./View/AdminPage/ManageUser.jsp").forward(request, response);
+            }
+            else{
+                response.sendRedirect("ErrorPage.jsp");
+            }
         }
     }
 
@@ -64,12 +69,7 @@ public class HomePage extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        loadHomePageData(request);
-        request.getRequestDispatcher("./Home.jsp").forward(request, response);
-    }
-
-    private void loadHomePageData(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
+        processRequest(request, response);
     }
 
     /**

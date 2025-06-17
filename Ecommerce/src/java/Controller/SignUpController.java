@@ -2,29 +2,25 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
  */
-package Controller.Customer_Controller;
+package Controller;
 
-import Model.Chinh.Categories;
-import Model.Chinh.MinMaxPrice;
-import Model.Chinh.Products;
-import Model.Chinh.images;
+import DAO.DAO_User.DAOUsers;
+import Model.Forgotpassword.MaHoa;
 import Model.Users;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import java.util.List;
+import java.util.Date;
 
 /**
  *
- * @author Dell
+ * @author lenovo
  */
-@WebServlet(name = "HomePage", urlPatterns = {"/homePage"})
-public class HomePage extends HttpServlet {
+public class SignUpController extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -40,15 +36,30 @@ public class HomePage extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         try (PrintWriter out = response.getWriter()) {
             /* TODO output your page here. You may use following sample code. */
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet HomePage</title>");
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet HomePage at " + request.getContextPath() + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
+            MaHoa ma = new MaHoa();
+            String username = request.getParameter("username");
+            String password = request.getParameter("password");
+            String email = request.getParameter("email");
+            int gender = Integer.parseInt(request.getParameter("gender"));
+            String phonenumber = request.getParameter("phonenumber");
+            HttpSession session = request.getSession();
+            Users user = new Users();
+            DAOUsers dao = new DAOUsers();
+            user = dao.CheckExitAccount(email);
+            if (user != null) {
+                session.setAttribute("message", "Account Exits");
+//                response.sendRedirect("./View/SignUp/SignUp.jsp");
+                request.getRequestDispatcher("./View/SignUp/SignUp.jsp").forward(request, response);
+                
+            } else if (user == null) {
+                session.removeAttribute("message");
+                dao.signup(username, ma.toSHA1(password), email, phonenumber, gender);
+                request.setAttribute("successMessage", "Register Successfully, Changing site...");
+                request.getRequestDispatcher("./View/SignUp/SignUp.jsp").forward(request, response);
+            }
+           
+
+            
         }
     }
 
@@ -64,12 +75,7 @@ public class HomePage extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        loadHomePageData(request);
-        request.getRequestDispatcher("./Home.jsp").forward(request, response);
-    }
-
-    private void loadHomePageData(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
+        processRequest(request, response);
     }
 
     /**
